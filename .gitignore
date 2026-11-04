@@ -15,6 +15,8 @@ data/splits/
 mlruns/
 artifacts/
 
+/tuner_results/
+
 .dvc/cache/
 .dvc/tmp/
 .dvc/config.local
