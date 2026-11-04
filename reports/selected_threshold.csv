@@ -1,0 +1,2 @@
+threshold,accuracy,balanced_accuracy,precision,recall,f1,false_positives,false_negatives
+0.7,0.7808219178082192,0.7903133903133903,0.8769230769230769,0.7037037037037037,0.7808219178082192,8.0,24.0
