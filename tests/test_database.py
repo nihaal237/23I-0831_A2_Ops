@@ -2,7 +2,7 @@
 import unittest
 from pathlib import Path
 
-import pandas as pd
+import csv
 
 from app.main import app
 from app.database import db, Prediction
@@ -27,8 +27,10 @@ class TestPredictionDatabase(unittest.TestCase):
     def test_valid_prediction_saved(self):
         before = self.get_count()
 
-        df = pd.read_csv("data/splits/val.csv")
-        image_path = Path(df.iloc[0]["path"])
+        with open("data/splits/val.csv", newline="", encoding="utf-8") as file:
+             sample = next(csv.DictReader(file))
+
+        image_path = Path(sample["path"])
 
         with image_path.open("rb") as image:
             response = self.client.post(
