@@ -114,19 +114,6 @@ def predict():
 
             db.session.add(record)
             db.session.commit()
-        
-            from sqlalchemy import text
-
-            print(
-    "SERVER DATABASE FILE:",
-    db.session.execute(text("PRAGMA database_list")).fetchall(),
-    flush=True
-)
-            print(
-    "SERVER COUNT:",
-    db.session.query(Prediction).count(),
-    flush=True
-)
            
 
         except SQLAlchemyError:
