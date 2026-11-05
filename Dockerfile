@@ -24,8 +24,25 @@ RUN pip install --no-cache-dir \
 
 COPY app/ ./app/
 
-RUN mkdir -p /visionguard/models /visionguard/instance
+
+# Create required directories and non-root user.
+RUN mkdir -p /visionguard/models /visionguard/instance \
+    && groupadd --system visionguard \
+    && useradd --system --gid visionguard \
+        --home-dir /visionguard visionguard \
+    && chown -R visionguard:visionguard \
+        /visionguard/instance /visionguard/app
+
+# Run the Flask application without root privileges.
+USER visionguard
 
 EXPOSE 5000
+
+# Check whether the application is responding.
+HEALTHCHECK --interval=30s \
+    --timeout=10s \
+    --start-period=90s \
+    --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/health', timeout=5)" || exit 1
 
 CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "1", "--threads", "2", "--timeout", "120", "app.main:app"]
