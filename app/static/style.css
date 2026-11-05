@@ -196,3 +196,33 @@ footer {
     .result-grid { grid-template-columns: 1fr; }
     header { padding: 18px; }
 }
+
+
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    text-align: left;
+}
+
+.history-table th,
+.history-table td {
+    padding: 15px 12px;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+}
+
+.history-table th {
+    color: var(--muted);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.history-table td {
+    overflow-wrap: anywhere;
+}
+
+.history-table tbody tr:hover {
+    background: #1a2940;
+}
+

@@ -2,6 +2,10 @@
 import os
 from io import BytesIO
 
+from app.database import db, Prediction
+from sqlalchemy.exc import SQLAlchemyError
+from werkzeug.utils import secure_filename
+
 from flask import (
     Flask,
     request,
@@ -19,7 +23,28 @@ from app.inference import (
 
 load_dotenv()
 
-app = Flask(__name__)
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+INSTANCE_DIR = PROJECT_ROOT / "instance"
+INSTANCE_DIR.mkdir(parents=True, exist_ok=True)
+
+app = Flask(
+    __name__,
+    instance_path=str(INSTANCE_DIR)
+)
+
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
+    "DATABASE_URL",
+    "sqlite:///visionguard.db"
+)
+
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+db.init_app(app)
+
+with app.app_context():
+    db.create_all()
 
 MAX_MB = int(os.getenv("MAX_UPLOAD_MB", "10"))
 
@@ -65,6 +90,7 @@ def index():
     return render_template("index.html")
 
 
+
 @app.route("/predict", methods=["POST"])
 def predict():
     try:
@@ -72,10 +98,48 @@ def predict():
 
         image_bytes = validate_upload(uploaded_file)
 
+        # Run inference.
         result = predictor.predict(image_bytes)
+
+        # Store prediction in the database.
+        record = Prediction(
+            filename=secure_filename(uploaded_file.filename),
+            prediction=result["prediction"],
+            ai_probability=result["ai_probability"],
+            threshold=result["threshold"],
+            model_name=result["model"]
+        )
+
+        try:
+
+            db.session.add(record)
+            db.session.commit()
+        
+            from sqlalchemy import text
+
+            print(
+    "SERVER DATABASE FILE:",
+    db.session.execute(text("PRAGMA database_list")).fetchall(),
+    flush=True
+)
+            print(
+    "SERVER COUNT:",
+    db.session.query(Prediction).count(),
+    flush=True
+)
+           
+
+        except SQLAlchemyError:
+            db.session.rollback()
+            app.logger.exception("Failed to save prediction")
+            return jsonify({
+                "success": False,
+                "error": "Could not save prediction."
+            }), 500
 
         return jsonify({
             "success": True,
+            "prediction_id": record.id,
             **result
         })
 
@@ -84,6 +148,7 @@ def predict():
             "success": False,
             "error": str(error)
         }), 400
+
 
 
 @app.route("/health", methods=["GET"])
@@ -112,7 +177,18 @@ def internal_error(error):
 
 @app.route("/history", methods=["GET"])
 def history():
-    return render_template("history.html")
+    records = (
+        Prediction.query
+        .order_by(Prediction.created_at.desc(), Prediction.id.desc())
+        .limit(100)
+        .all()
+    )
+
+    return render_template(
+        "history.html",
+        predictions=records,
+        total_predictions=Prediction.query.count()
+    )
 
 if __name__ == "__main__":
     app.run(

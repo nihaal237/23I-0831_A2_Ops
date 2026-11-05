@@ -27,5 +27,13 @@ artifacts/
 /mlartifacts/
 /mlruns/
 
+
+# Local database files
+instance/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
 *.sqlite3
 .DS_Store
