@@ -1,6 +1,7 @@
 
 import os
 from io import BytesIO
+from pathlib import Path
 
 from app.database import db, Prediction
 from sqlalchemy.exc import SQLAlchemyError
@@ -22,8 +23,6 @@ from app.inference import (
 )
 
 load_dotenv()
-
-from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 INSTANCE_DIR = PROJECT_ROOT / "instance"
