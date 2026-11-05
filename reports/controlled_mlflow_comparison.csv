@@ -1,0 +1,3 @@
+run,learning_rate,dropout,best_epoch,val_accuracy,val_auc,val_loss
+Controlled_MobileNet_LR_1e-05,1e-05,0.3,3,0.7602739930152893,0.8132003545761108,0.5264628529548645
+Controlled_MobileNet_LR_5e-05,5e-05,0.3,3,0.767123281955719,0.8342829942703247,0.4990178048610687

@@ -21,5 +21,11 @@ artifacts/
 .dvc/tmp/
 .dvc/config.local
 
+# Local MLflow database and artifacts
+/mlflow.db
+/mlflow.db-*
+/mlartifacts/
+/mlruns/
+
 *.sqlite3
 .DS_Store
