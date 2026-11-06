@@ -1,0 +1,6 @@
+
+Flask>=3.1,<4
+gradio_client>=1.0,<3
+Pillow
+psycopg[binary]
+SQLAlchemy>=2.0,<3

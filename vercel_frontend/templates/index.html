@@ -1,0 +1,221 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1">
+    <title>VisionGuard | AI Image Detection</title>
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <header>
+        <a href="/" class="logo">◈ VisionGuard</a>
+        <nav>
+            <a href="/">Detector</a>
+            <a href="/history">History</a>
+            <a href="/health">Health</a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <h1>Is this image AI-generated?</h1>
+            <p>
+                Analyze images using our trained MobileNetV2
+                classification model.
+            </p>
+        </section>
+
+        <section class="card">
+            <div class="upload-zone" id="dropZone">
+                <div class="upload-icon">⬆</div>
+                <h2>Drop your image here</h2>
+                <p>or click to browse your files</p>
+                <p class="note">
+                    JPG, JPEG or PNG • Maximum 10 MB
+                </p>
+
+                <input
+                    type="file"
+                    id="fileInput"
+                    accept=".jpg,.jpeg,.png"
+                    hidden
+                >
+
+                <img id="preview" alt="Uploaded image preview">
+                <p id="fileName"></p>
+            </div>
+
+            <div class="actions">
+                <button id="analyzeBtn" disabled>
+                    Analyze Image
+                </button>
+            </div>
+
+            <div id="errorMessage" class="error"></div>
+        </section>
+
+        <section class="card result" id="resultCard">
+            <h2>Analysis Results</h2>
+
+            <div class="result-grid">
+                <div>
+                    <p class="note">Prediction</p>
+                    <div class="result-value" id="prediction"></div>
+                </div>
+
+                <div>
+                    <p class="note">AI probability score</p>
+                    <div class="result-value" id="score"></div>
+                    <div class="score-track">
+                        <div class="score-fill" id="scoreFill"></div>
+                    </div>
+                </div>
+            </div>
+
+            <p class="note" style="margin-top: 25px;">
+                Model: MobileNetV2 Tuned • Threshold: 0.70
+            </p>
+
+            <p class="note">
+                This classification is an estimate, not definitive
+                proof of an image's origin.
+            </p>
+        </section>
+    </main>
+
+    <footer>
+        VisionGuard — AI vs Real Image Classification
+    </footer>
+
+    <script>
+        const dropZone = document.getElementById("dropZone");
+        const fileInput = document.getElementById("fileInput");
+        const preview = document.getElementById("preview");
+        const analyzeBtn = document.getElementById("analyzeBtn");
+        const resultCard = document.getElementById("resultCard");
+        const errorMessage = document.getElementById("errorMessage");
+
+        let selectedFile = null;
+
+        dropZone.addEventListener("click", () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener("click", event => {
+            event.stopPropagation();
+        });
+
+        fileInput.addEventListener("change", () => {
+            selectFile(fileInput.files[0]);
+        });
+
+        dropZone.addEventListener("dragover", event => {
+            event.preventDefault();
+            dropZone.classList.add("dragover");
+        });
+
+        dropZone.addEventListener("dragleave", () => {
+            dropZone.classList.remove("dragover");
+        });
+
+        dropZone.addEventListener("drop", event => {
+            event.preventDefault();
+            dropZone.classList.remove("dragover");
+            selectFile(event.dataTransfer.files[0]);
+        });
+
+        function selectFile(file) {
+           selectedFile = null;
+           analyzeBtn.disabled = true;
+           preview.style.display = "none";
+           document.getElementById("fileName").textContent = "";
+
+       if (!file) return;
+
+            errorMessage.style.display = "none";
+            resultCard.style.display = "none";
+
+            if (!["image/jpeg", "image/png"].includes(file.type)) {
+                showError("Only JPG and PNG images are supported.");
+                return;
+            }
+
+            if (file.size > 10 * 1024 * 1024) {
+                showError("File must be smaller than 10 MB.");
+                return;
+            }
+
+            selectedFile = file;
+
+            preview.src = URL.createObjectURL(file);
+            preview.style.display = "block";
+
+            document.getElementById("fileName").textContent =
+                file.name;
+
+            analyzeBtn.disabled = false;
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = "block";
+        }
+
+        analyzeBtn.addEventListener("click", async () => {
+            if (!selectedFile) return;
+
+            analyzeBtn.disabled = true;
+            analyzeBtn.textContent = "Analyzing...";
+            errorMessage.style.display = "none";
+
+            const formData = new FormData();
+            formData.append("image", selectedFile);
+
+            try {
+                const response = await fetch("/predict", {
+                    method: "POST",
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(
+                        data.error || "Prediction failed."
+                    );
+                }
+
+                const prediction = document.getElementById("prediction");
+                prediction.textContent = data.prediction;
+
+                prediction.className = "result-value " +
+                    (data.prediction === "AI-generated" ? "ai" : "real");
+
+                const percent = (data.ai_probability * 100).toFixed(1);
+
+                document.getElementById("score").textContent =
+                    percent + "%";
+
+                document.getElementById("scoreFill").style.width =
+                    percent + "%";
+
+                resultCard.style.display = "block";
+                resultCard.scrollIntoView({
+                    behavior: "smooth",
+                    block: "nearest"
+                });
+
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                analyzeBtn.disabled = false;
+                analyzeBtn.textContent = "Analyze Image";
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,105 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1">
+
+    <title>VisionGuard | Prediction History</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <header>
+        <a href="/" class="logo">◈ VisionGuard</a>
+
+        <nav>
+            <a href="/">Detector</a>
+            <a href="/history">History</a>
+            <a href="/health">Health</a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <h1>Prediction History</h1>
+            <p>
+                Browse previous image classifications
+                stored in the database.
+            </p>
+        </section>
+
+        <section class="card">
+            <h2>
+                Total predictions: {{ total_predictions }}
+            </h2>
+
+            {% if predictions %}
+
+            <div style="overflow-x: auto;">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Filename</th>
+                            <th>Prediction</th>
+                            <th>AI Score</th>
+                            <th>Model</th>
+                            <th>Timestamp (UTC)</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for item in predictions %}
+                        <tr>
+                            <td>{{ item.id }}</td>
+
+                            <td>{{ item.filename }}</td>
+
+                            <td>
+                                {% if item.prediction == "AI-generated" %}
+                                    <span class="ai">
+                                        AI-generated
+                                    </span>
+                                {% else %}
+                                    <span class="real">
+                                        Real
+                                    </span>
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                {{ "%.1f"|format(
+                                    item.ai_probability * 100
+                                ) }}%
+                            </td>
+
+                            <td>{{ item.model_name }}</td>
+
+                            <td>
+                                {{ item.created_at.strftime(
+                                    "%Y-%m-%d %H:%M:%S"
+                                ) }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% else %}
+                <p class="note">
+                    No predictions have been saved yet.
+                </p>
+            {% endif %}
+        </section>
+    </main>
+
+    <footer>
+        VisionGuard — AI vs Real Image Classification
+    </footer>
+</body>
+</html>
