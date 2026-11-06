@@ -20,7 +20,7 @@ from app.cloud_inference import (
 )
 
 from werkzeug.exceptions import RequestEntityTooLarge
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 from dotenv import load_dotenv
 
 from app.inference import (
@@ -93,8 +93,13 @@ def validate_upload(file):
         raise ValueError("Image exceeds the upload limit.")
 
     # Validate that the uploaded bytes contain a real image.
-    with Image.open(BytesIO(image_bytes)) as image:
-     image.verify()
+    try:
+     with Image.open(BytesIO(image_bytes)) as image:
+        image.verify()
+    except (UnidentifiedImageError, OSError, ValueError) as exc:
+      raise InvalidImageError(
+        "Uploaded file is not a valid image."
+    ) from exc
 
     return image_bytes
 

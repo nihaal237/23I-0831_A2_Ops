@@ -22,7 +22,12 @@ class TestVisionGuardFlask(unittest.TestCase):
 
         data = response.get_json()
         self.assertEqual(data["status"], "healthy")
-        self.assertTrue(data["model_loaded"])
+        self.assertEqual(data["status"], "healthy")
+
+        if data.get("inference_mode") == "cloud":
+         self.assertIsNone(data["model_loaded"])
+        else:
+         self.assertTrue(data["model_loaded"])
 
     def test_history_page(self):
         response = self.client.get("/history")
