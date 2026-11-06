@@ -13,6 +13,12 @@ from flask import (
     jsonify,
     render_template,
 )
+
+from app.cloud_inference import (
+    CloudVisionGuardPredictor,
+    CloudInferenceError,
+)
+
 from werkzeug.exceptions import RequestEntityTooLarge
 from PIL import Image
 from dotenv import load_dotenv
@@ -53,8 +59,16 @@ app.config["MAX_CONTENT_LENGTH"] = (
 
 ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png"}
 
-# Load model once at startup.
-predictor = VisionGuardPredictor()
+INFERENCE_MODE = os.getenv("INFERENCE_MODE", "local").lower()
+
+if INFERENCE_MODE == "cloud":
+    predictor = CloudVisionGuardPredictor()
+    print("VisionGuard using cloud inference.")
+elif INFERENCE_MODE == "local":
+    predictor = VisionGuardPredictor()
+    print("VisionGuard using local inference.")
+else:
+    raise ValueError(f"Unsupported INFERENCE_MODE: {INFERENCE_MODE}")
 
 
 def validate_upload(file):
@@ -78,8 +92,9 @@ def validate_upload(file):
     if len(image_bytes) > MAX_MB * 1024 * 1024:
         raise ValueError("Image exceeds the upload limit.")
 
-    # Decode and validate using our inference module.
-    predictor.preprocess(image_bytes)
+    # Validate that the uploaded bytes contain a real image.
+    with Image.open(BytesIO(image_bytes)) as image:
+     image.verify()
 
     return image_bytes
 
@@ -134,6 +149,14 @@ def predict():
             "success": False,
             "error": str(error)
         }), 400
+    
+    except CloudInferenceError as error:
+     app.logger.warning("Cloud prediction failed: %s", error)
+
+     return jsonify({
+        "success": False,
+        "error": str(error)
+    }), 502
 
 
 
@@ -141,8 +164,13 @@ def predict():
 def health():
     return jsonify({
         "status": "healthy",
-        "model_loaded": predictor.model is not None,
-        "service": "VisionGuard"
+        "service": "VisionGuard",
+        "inference_mode": INFERENCE_MODE,
+        "model_loaded": (
+            predictor.model is not None
+            if INFERENCE_MODE == "local"
+            else None
+        ),
     })
 
 
