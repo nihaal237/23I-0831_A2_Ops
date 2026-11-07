@@ -1,6 +1,6 @@
 # VisionGuard
 
-[![VisionGuard CI](https://github.com/nihaal237/23I-0831_A2_Ops/actions/workflows/ci.yml/badge.svg)](https://github.com/nihaal237/23I-0831_A2_Ops/actions/workflows/ci.yml)
+[![VisionGuard CI](https://github.com/nihaal237/23I-0831_A2_Ops/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/nihaal237/23I-0831_A2_Ops/actions/workflows/ci.yml)
 
 AI vs Real Image Classification and Deployment
 
