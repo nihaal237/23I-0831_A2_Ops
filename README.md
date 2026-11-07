@@ -24,9 +24,6 @@ Prediction history is stored in a database and displayed through a web interface
 |---|---|
 | GitHub Repository | [VisionGuard GitHub](https://github.com/nihaal237/23I-0831_A2_Ops) |
 | Live Application | [VisionGuard on Vercel](https://23-i-0831-a2-ops.vercel.app/) |
-| Public Prediction API | [Vercel API](https://23-i-0831-a2-ops.vercel.app/predict) |
-| Public API Health Check | [API Health](https://23-i-0831-a2-ops.vercel.app/health) |
-| Cloud Prediction History | [Prediction History](https://23-i-0831-a2-ops.vercel.app/history) |
 | Hosted Model | [Hugging Face Spaces](https://huggingface.co/spaces/nihaal237/23I-0831-A2-Ops) |
 | DagsHub Repository | [VisionGuard DagsHub](https://dagshub.com/nihaal237/23I-0831_A2_Ops) |
 | CI Workflow | [GitHub Actions](https://github.com/nihaal237/23I-0831_A2_Ops/actions/workflows/ci.yml) |
